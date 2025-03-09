@@ -1,0 +1,26 @@
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import org.tensorflow.lite.Interpreter
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
+class ImageProcessor(context: Context) {
+    private val interpreter: Interpreter
+
+    init {
+        val model = context.assets.open("real-esrgan.tflite").readBytes()
+        val buffer = ByteBuffer.allocateDirect(model.size)
+        buffer.order(ByteOrder.nativeOrder())
+        buffer.put(model)
+        interpreter = Interpreter(buffer)
+    }
+
+    fun enhanceImage(bitmap: Bitmap): Bitmap {
+        val input = Bitmap.createScaledBitmap(bitmap, 256, 256, false)
+        val output = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
+
+        interpreter.run(input, output)
+        return output
+    }
+}
